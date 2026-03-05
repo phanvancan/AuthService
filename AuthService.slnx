@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docs/Tai-lieu-he-thong-SSO-AuthService.doc" />
+  </Folder>
   <Project Path="Application1/Application1.csproj" />
   <Project Path="Application2/Application2.csproj" />
   <Project Path="AuthService/AuthService.csproj" />
