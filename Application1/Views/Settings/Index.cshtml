@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<h2 class="mb-3">Settings</h2>
+<p class="text-muted">Trang cấu hình ứng dụng App1.</p>
+
+<div class="list-group">
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <strong>Bảo mật phiên đăng nhập</strong>
+            <div class="text-muted small">Sử dụng token từ AuthService</div>
+        </div>
+        <span class="badge text-bg-success">Active</span>
+    </div>
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <strong>Đồng bộ phân quyền</strong>
+            <div class="text-muted small">Theo role của hệ thống SSO</div>
+        </div>
+        <span class="badge text-bg-primary">Enabled</span>
+    </div>
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <strong>Nhật ký truy cập</strong>
+            <div class="text-muted small">Ghi nhận sự kiện đăng nhập</div>
+        </div>
+        <span class="badge text-bg-secondary">Default</span>
+    </div>
+</div>

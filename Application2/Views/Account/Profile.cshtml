@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = "Tài khoản";
+}
+
+<h2>Thông tin tài khoản</h2>
+<ul>
+    <li>UserId: @User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value</li>
+    <li>Username: @User.Identity?.Name</li>
+    <li>Role: @(User.IsInRole("Admin") ? "Admin" : "User")</li>
+</ul>

@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<h2 class="mb-3">Settings</h2>
+<p class="text-muted">Cấu hình hệ thống App2.</p>
+
+<div class="list-group">
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <strong>Monitoring Auto Refresh</strong>
+            <div class="text-muted small">Tự động làm mới mỗi 30 giây</div>
+        </div>
+        <span class="badge text-bg-success">Enabled</span>
+    </div>
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <strong>Log Retention</strong>
+            <div class="text-muted small">Lưu trữ log 30 ngày</div>
+        </div>
+        <span class="badge text-bg-primary">30 days</span>
+    </div>
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <strong>Role Sync</strong>
+            <div class="text-muted small">Đồng bộ role từ AuthService</div>
+        </div>
+        <span class="badge text-bg-success">Active</span>
+    </div>
+</div>

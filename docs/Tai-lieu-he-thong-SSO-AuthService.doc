@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Tài liệu hệ thống SSO - AuthService</title>
+  <style>
+    body { font-family: Calibri, Arial, sans-serif; line-height: 1.45; }
+    h1, h2, h3 { color: #1f4e78; }
+    table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; }
+    th, td { border: 1px solid #999; padding: 8px; text-align: left; }
+    th { background: #e9f1fb; }
+    .muted { color: #555; }
+    .code { font-family: Consolas, monospace; background: #f7f7f7; padding: 2px 4px; }
+  </style>
+</head>
+<body>
+  <h1>TÀI LIỆU HỆ THỐNG SSO - .NET 10 (API + MVC + SQL SERVER)</h1>
+  <p class="muted">Hệ thống: AuthService + Application1 + Application2</p>
+  <p class="muted">Ngày cập nhật: 05/03/2026</p>
+
+  <h2>1. Mục tiêu</h2>
+  <ul>
+    <li>Xây dựng xác thực tập trung (Single Sign-On) cho nhiều ứng dụng nội bộ.</li>
+    <li>App1 và App2 không có login riêng, dùng đăng nhập từ AuthService.</li>
+    <li>Dùng JWT + Cookie bảo mật + SQL Server cho quản lý tài khoản/phân quyền.</li>
+  </ul>
+
+  <h2>2. Phạm vi hệ thống</h2>
+  <table>
+    <tr><th>Thành phần</th><th>Mô tả</th></tr>
+    <tr><td>AuthService</td><td>ASP.NET Core 10 Web API, quản lý User/Role/Auth, phát hành token và cookie SSO.</td></tr>
+    <tr><td>Application1</td><td>ASP.NET Core 10 MVC, nghiệp vụ Dashboard/Reports/Settings, dùng SSO.</td></tr>
+    <tr><td>Application2</td><td>ASP.NET Core 10 MVC, nghiệp vụ Dashboard/Monitoring/Logs/Settings, dùng SSO.</td></tr>
+    <tr><td>Database</td><td>SQL Server (EF Core) lưu user, role, permission, mapping.</td></tr>
+  </table>
+
+  <h2>3. Kiến trúc tổng thể</h2>
+  <ul>
+    <li>AuthService đóng vai trò trung tâm xác thực.</li>
+    <li>App1/App2 dùng JWT middleware đọc cookie <span class="code">access_token</span>.</li>
+    <li>Khi token thiếu/hết hạn, app redirect về <span class="code">/sso/login</span> của AuthService.</li>
+    <li>AuthService login thành công sẽ set cookie và redirect về app gốc bằng <span class="code">returnUrl</span>.</li>
+  </ul>
+
+  <h3>3.1 Luồng đăng nhập SSO</h3>
+  <ol>
+    <li>User truy cập App1 hoặc App2.</li>
+    <li>Middleware kiểm tra cookie <span class="code">access_token</span>.</li>
+    <li>Nếu không hợp lệ → redirect sang AuthService login.</li>
+    <li>User nhập tài khoản/mật khẩu.</li>
+    <li>AuthService xác thực, tạo access token + refresh token.</li>
+    <li>AuthService set cookie HttpOnly/Secure và redirect về app ban đầu.</li>
+    <li>User truy cập App còn lại không cần login lại (SSO).</li>
+  </ol>
+
+  <h2>4. Công nghệ sử dụng</h2>
+  <table>
+    <tr><th>Nhóm</th><th>Công nghệ</th></tr>
+    <tr><td>Backend</td><td>C# .NET 10</td></tr>
+    <tr><td>API</td><td>ASP.NET Core Web API</td></tr>
+    <tr><td>MVC</td><td>ASP.NET Core MVC + Razor</td></tr>
+    <tr><td>Authentication</td><td>JWT Bearer + Cookie</td></tr>
+    <tr><td>ORM</td><td>Entity Framework Core</td></tr>
+    <tr><td>Database</td><td>SQL Server</td></tr>
+    <tr><td>Password</td><td>BCrypt</td></tr>
+  </table>
+
+  <h2>5. Thiết kế cơ sở dữ liệu (AuthService)</h2>
+  <ul>
+    <li><b>Users</b>: Id, Username, PasswordHash, Email, FullName, IsActive, CreatedAt, RefreshToken, RefreshTokenExpiresAt.</li>
+    <li><b>Roles</b>: Id, RoleName, Description.</li>
+    <li><b>UserRoles</b>: Id, UserId, RoleId.</li>
+    <li><b>Permissions</b>: Id, PermissionName, Description.</li>
+    <li><b>RolePermissions</b>: Id, RoleId, PermissionId.</li>
+  </ul>
+
+  <h2>6. API danh sách endpoint</h2>
+  <h3>6.1 Auth API</h3>
+  <ul>
+    <li>POST <span class="code">/api/auth/login</span></li>
+    <li>POST <span class="code">/api/auth/register</span></li>
+    <li>POST <span class="code">/api/auth/refresh-token</span></li>
+    <li>POST <span class="code">/api/auth/refresh-token-cookie</span></li>
+    <li>POST <span class="code">/api/auth/logout</span></li>
+  </ul>
+
+  <h3>6.2 User API (Admin)</h3>
+  <ul>
+    <li>GET <span class="code">/api/users</span></li>
+    <li>POST <span class="code">/api/users</span></li>
+    <li>PUT <span class="code">/api/users/{id}</span></li>
+    <li>DELETE <span class="code">/api/users/{id}</span></li>
+  </ul>
+
+  <h3>6.3 Role API (Admin)</h3>
+  <ul>
+    <li>GET <span class="code">/api/roles</span></li>
+    <li>POST <span class="code">/api/roles</span></li>
+    <li>POST <span class="code">/api/roles/assign</span></li>
+  </ul>
+
+  <h3>6.4 SSO UI</h3>
+  <ul>
+    <li>GET <span class="code">/sso/login?returnUrl=...</span></li>
+    <li>POST <span class="code">/sso/login</span></li>
+    <li>GET <span class="code">/sso/logout?returnUrl=...</span></li>
+  </ul>
+
+  <h2>7. JWT và Cookie</h2>
+  <h3>7.1 JWT Claims</h3>
+  <ul>
+    <li>UserId</li>
+    <li>Username</li>
+    <li>Role</li>
+  </ul>
+
+  <h3>7.2 Token lifetime</h3>
+  <ul>
+    <li>Access Token: 60 phút</li>
+    <li>Refresh Token: 7 ngày</li>
+  </ul>
+
+  <h3>7.3 Cookie bảo mật</h3>
+  <ul>
+    <li>Cookie name: <span class="code">access_token</span>, <span class="code">refresh_token</span></li>
+    <li>HttpOnly: true</li>
+    <li>Secure: true</li>
+    <li>SameSite: Lax</li>
+    <li>Path: /</li>
+    <li>Production: đặt Domain = <span class="code">.company.com</span></li>
+  </ul>
+
+  <h2>8. CORS</h2>
+  <p>AuthService dùng policy strict whitelist origin, chỉ cho phép:</p>
+  <ul>
+    <li><span class="code">https://localhost:7002</span></li>
+    <li><span class="code">https://localhost:7281</span></li>
+  </ul>
+  <p>Cho phép credentials để browser gửi cookie SSO đúng chuẩn.</p>
+
+  <h2>9. Cấu trúc source code</h2>
+  <ul>
+    <li>AuthService.slnx</li>
+    <li>AuthService/ (API + Data + Services + Repositories + Controllers)</li>
+    <li>Application1/ (MVC + JWT middleware + views nghiệp vụ)</li>
+    <li>Application2/ (MVC + JWT middleware + views nghiệp vụ)</li>
+    <li>postman/ (Collection + Environment JSON)</li>
+    <li>docs/ (tài liệu hệ thống)</li>
+  </ul>
+
+  <h2>10. Hướng dẫn cài đặt và chạy</h2>
+  <h3>10.1 Yêu cầu</h3>
+  <ul>
+    <li>.NET SDK 10</li>
+    <li>SQL Server</li>
+    <li>Dev HTTPS certificate</li>
+  </ul>
+
+  <h3>10.2 Build</h3>
+  <p><span class="code">dotnet build AuthService.slnx</span></p>
+
+  <h3>10.3 Run</h3>
+  <ul>
+    <li><span class="code">cd AuthService && dotnet run</span></li>
+    <li><span class="code">cd Application1 && dotnet run</span></li>
+    <li><span class="code">cd Application2 && dotnet run</span></li>
+  </ul>
+
+  <h2>11. Kiểm thử hệ thống</h2>
+  <h3>11.1 Test thủ công</h3>
+  <ol>
+    <li>Mở App1 dashboard → redirect login AuthService.</li>
+    <li>Login thành công → vào App1.</li>
+    <li>Mở App2 dashboard → vào trực tiếp, không login lại.</li>
+    <li>Logout SSO → cả App1/App2 yêu cầu login lại.</li>
+  </ol>
+
+  <h3>11.2 Test tự động</h3>
+  <p>Script regression:</p>
+  <p><span class="code">powershell -ExecutionPolicy Bypass -File .\sso-regression.ps1</span></p>
+
+  <h2>12. Postman</h2>
+  <ul>
+    <li>Collection: <span class="code">postman/AuthService-SSO.postman_collection.json</span></li>
+    <li>Environment: <span class="code">postman/AuthService-SSO.local.postman_environment.json</span></li>
+  </ul>
+
+  <h2>13. Bảo mật và vận hành production</h2>
+  <ul>
+    <li>Không lưu JWT secret cứng trong source code production.</li>
+    <li>Dùng Secret Manager/Key Vault.</li>
+    <li>Giới hạn CORS theo domain thật.</li>
+    <li>Bật audit log cho login/logout/role changes.</li>
+    <li>Sử dụng TLS certificate hợp lệ.</li>
+  </ul>
+
+  <h2>14. Định hướng mở rộng</h2>
+  <p>Cho triển khai enterprise quy mô lớn, nên cân nhắc chuẩn OpenID Connect (IdentityServer hoặc Keycloak) để có tính năng federation, consent, SSO đa hệ thống nâng cao.</p>
+
+  <hr/>
+  <p class="muted">Tài liệu được xuất tự động từ trạng thái hệ thống hiện tại.</p>
+</body>
+</html>
